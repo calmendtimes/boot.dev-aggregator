@@ -1,0 +1,8 @@
+{
+  "schema": "src/db/schema.ts",
+  "out": "src/db",
+  "dialect": "postgresql",
+  "dbCredentials": {
+    "url": "postgres://calm:postgres@localhost:5432/gator?sslmode=disable"
+  }
+}

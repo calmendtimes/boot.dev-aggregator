@@ -1,0 +1,5 @@
+node_modules/
+dist/
+src/db/meta/
+src/db/*.sql
+package-lock.json
