@@ -4,7 +4,7 @@ Aggregator HELP.
   * register  `<username>`
   * reset  
   * users  
-  * agg  [time_between_reqests_ms]
+  * agg  `[time_between_reqests_ms]`
   * feeds  
   * addfeed  `<feed_name>` `<url>`
   * follow  `<url>`
