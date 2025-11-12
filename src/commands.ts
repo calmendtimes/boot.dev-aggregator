@@ -4,7 +4,9 @@ import * as Schema from './db/schema.js'
 import * as Users from './db/queries/users.js';
 import * as Reset from './db/queries/reset.js';
 import * as Feed  from './db/queries/feed.js';
-import * as FeedFollows from './db/queries/feed_follows.js'
+import * as FeedFollows from './db/queries/feed_follows.js';
+import * as Posts from './db/queries/posts.js';
+
 
 import { XMLParser } from 'fast-xml-parser';
 import { config } from 'process';
@@ -109,8 +111,24 @@ async function handleAgg(cmdName: string, ...args: string[]): Promise<void> {
       for (const feed of feeds) {
         const fetchedFeed = await fetchFeed(feed.url);
         await Feed.markFeedFetched(feed.id);
+       
+        for (const p of fetchedFeed.items) {
+          const post: Schema.Post = {   
+              url:    p.link,         
+              title:  p.title,      
+              description: p.description, 
+              publishedAt: new Date(p.pubDate),
+              feedId: feed.id,
+          };
+
+          Posts.createFeed(post);
+        }
+
         console.log(` * Feed: ${fetchedFeed.title}`)
         fetchedFeed.items.forEach((e:any) => { console.log(`   -  ${e.title}`) });
+
+        //console.log(` * Feed`, fetchedFeed)
+        //fetchedFeed.items.forEach((e:any) => { console.log(`   - `, e) });
       }
     };
     run();
@@ -142,7 +160,7 @@ async function handleAddFeed(cmdName: string, user: Schema.User, ...args: string
     const feed: Schema.Feed = { name: feedName, url: url, lastFetchedAt: null }
     const resultFeed = await Feed.createFeed(feed);
 
-    const feedFollows: Schema.FeedFollows = { user_id: user.id!, feed_id: resultFeed.id };
+    const feedFollows: Schema.FeedFollows = { userId: user.id!, feedId: resultFeed.id };
     const resultFeedFollow = await FeedFollows.createFeedFollow(feedFollows);
 
     return Promise.resolve();    
@@ -154,7 +172,7 @@ async function handleFollow(cmdName: string, user: Schema.User, ...args: string[
   const url = args[0];
   const feed = await Feed.getFeedByUrl(url);  
   
-  const feedFollows: Schema.FeedFollows = { user_id: user.id!, feed_id: feed.id };
+  const feedFollows: Schema.FeedFollows = { userId: user.id!, feedId: feed.id };
   const result = await FeedFollows.createFeedFollow(feedFollows);
   return Promise.resolve();    
 }
@@ -162,7 +180,7 @@ async function handleFollow(cmdName: string, user: Schema.User, ...args: string[
 async function handleFollowing(cmdName: string, user: Schema.User, ...args: string[]): Promise<void> {
   // No argument needed
   const result = await FeedFollows.getFeedFollowsForUser(user.id!);
-  result.forEach( e => console.log(e.feed_name) );
+  result.forEach( e => console.log(e.feedName) );
   return Promise.resolve();    
 }
 
